@@ -4,10 +4,10 @@
 // the 'NRTsine' SynthDef
 (
 SynthDef("NRTsine",{
-	arg freq;
+	arg freq, dur;
 	var subosc, subenv, suboutput;
 	subosc = {SinOsc.ar(freq)};
-    subenv = {Line.ar(1, 0, 0.25, doneAction: 2)};
+    subenv = {Line.ar(0.9, 0, dur, doneAction: 2)};
     suboutput = (subosc * subenv);
 	Out.ar(0, suboutput)
 }).writeDefFile;
@@ -16,10 +16,10 @@ SynthDef("NRTsine",{
 
 //Kick drum
 (
-SynthDef('fullkickdrum', { arg dur = 0.25;
+SynthDef('fullkickdrum', { arg dur, freq;
   var subosc, subenv, suboutput, clickosc, clickenv, clickoutput;
 
-    subosc = {SinOsc.ar(60)};
+    subosc = {SinOsc.ar(freq)};
     subenv = {Line.ar(1, 0, dur, doneAction: 2)};
 
     clickosc = {LPF.ar(WhiteNoise.ar(1),1500)};
@@ -35,11 +35,11 @@ SynthDef('fullkickdrum', { arg dur = 0.25;
 )
 
 (
-SynthDef('openhat', {
+SynthDef('openhat', {arg freq, dur;
 	var hatosc, hatenv, hatnoise, hatoutput;
-	hatnoise = {LPF.ar(WhiteNoise.ar(1),6000)};
+	hatnoise = {LPF.ar(WhiteNoise.ar(freq),6000)};
 	hatosc = {HPF.ar(hatnoise,2000)};
-	hatenv = {Line.ar(1, 0, 0.3)};
+	hatenv = {Line.ar(1, 0, dur)};
 	hatoutput = (hatosc * hatenv);
 
 	Out.ar(0,
@@ -48,16 +48,31 @@ SynthDef('openhat', {
 }).writeDefFile;
 )
 
-//Note: the Score syntax is v. awkward. Want to find a way to use
-//my synth defs in a pattern then output to file.
-//Pbind(\instrument, \fullkickdrum, \freq, Prand([1, 1.2, 2, 2.5, 3, 4], inf) * 200, \dur, 0.1).play;
-
-//Render pattern with custom instrument
+//Render pattern with custom instruments
 (
-var samplePath, wavFile, p;
+var samplePath, wavFile, p, x, kickline, tune, kfrq, hihatline,
+hhfrq;
+kfrq = 60;
+hhfrq = 1;
+//Sine line
+x = Pxrand([1,5/4,3/2,15/8, \rest],32)*440;
 p = Pbind(
-\instrument, \NRTsine,	\freq, Pseq([440, \rest ,220, \rest],10), \dur, 0.1,);
+\instrument, \NRTsine,	\freq,
+	Pxrand([x,x*5/4,x*3/2,x*15/8],inf),
+	\dur, 0.125,);
+//Kickline
+kickline = Pbind(\instrument, \fullkickdrum, \freq,
+Pseq([kfrq, \rest, kfrq, \rest,
+		kfrq, kfrq, \rest, kfrq],inf), \dur, 0.125);
+//Hihat line
+hihatline = Pbind(\instrument, \openhat, \freq,
+	Pxrand([hhfrq,hhfrq,\rest],inf),
+//	Pseq([hhfrq,hhfrq,\rest,\rest,
+//		hhfrq,\rest,hhfrq,\rest],inf),
+	\dur, 0.125);
+//Whole thing
+tune = Ppar([p, kickline, hihatline],1);
 samplePath = thisProcess.nowExecutingPath.dirname;
-wavFile = samplePath +/+ "christmas_tree.wav";
-p.render(wavFile, 4.0, headerFormat: "WAV");
+wavFile = samplePath +/+ "netherlands_first_day.wav";
+tune.render(wavFile, 32.0, headerFormat: "WAV");
 )
