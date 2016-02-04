@@ -1,4 +1,26 @@
 //Write sounds to file
+
+ ( SynthDef('fullkickdrum’, {
+    var subosc, subenv, suboutput, clickosc, clickenv, clickoutput;
+
+    subosc = {SinOsc.ar(60)};
+    subenv = {Line.ar(1, 0, 1, doneAction: 2)};
+
+    clickosc = {LPF.ar(WhiteNoise.ar(1),1500)};
+    clickenv = {Line.ar(1, 0, 0.02)};
+
+    suboutput = (subosc * subenv);
+    clickoutput = (clickosc * clickenv);
+
+    Out.ar(0,
+        Pan2.ar(suboutput + clickoutput, 0)
+    )
+
+}).send(s);
+)
+
+t = Synth('fullkickdrum');
+
 (
 var g, o, samplePath, wavFile, oscFile;
 g = [
