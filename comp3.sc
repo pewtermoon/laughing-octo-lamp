@@ -1,26 +1,27 @@
+//Note: if you do s.boot, then even after s.quit, you won't be able to hear
+//or play ANY soundfile in ANY application outside SC. To stop this, run
+//killall jackd in a terminal (this will force switching back from jackd to
+//pulseaudio (Ubuntu's sound handling program).
 //Synth def
 (
-SynthDef(\syn1, { |freq = 440, amp = 0.08, scal = 0.5|
+SynthDef(\syn1, { |freq = 440, amp = 1, scal = 0.5|
     var sig, env;
-	sig = SinOsc.ar([freq-15, freq+15], 0, amp);
+	sig = SinOsc.ar([freq-15, freq+15], 0, 0.3);
 	env = Env([0,0.9,0.9,0], [0.07, 0.01, 0.25]*scal);
 	env = EnvGen.kr(env, doneAction: 2);
 	sig = Out.ar(0, sig*env);
-}).add;
-)
+}).add.writeDefFile; //writeDefFile needed for .render() method to work
 
-(
-SynthDef(\syn2, { |freq = 440, amp = 0.01, scal = 1|
+SynthDef(\syn2, { |freq = 440, amp = 0.01, scal = 0.25, pan = 0.0|
     var sig, env;
-	sig = Pulse.ar(XLine.kr(freq-40, freq+40, 0.125), 0.5, 0.05);
+	sig = Pulse.ar(XLine.kr(freq-50, freq-100, 0.125), 0.5, 0.15);
 	env = Env([0,0.9,0.9,0], [0.07, 0.01, 0.5]*scal);
 	env = EnvGen.kr(env, doneAction: 2);
-	sig = Out.ar(0, sig*env);
-}).add;
+	sig = Out.ar(0,Pan2.ar( sig*env,pan));
+}).add.writeDefFile;
 )
-
-//Pattern lib
 (
+//Pattern lib
 ~phrases = (
 	p1: Pbind(
 		\instrument, \syn1,
@@ -28,7 +29,7 @@ SynthDef(\syn2, { |freq = 440, amp = 0.01, scal = 1|
 		             1.9, 1.8, 1.7, 1.6]*391.995, 1),
 		\dur, 0.25,
 		// \amp, 0.01,
-		\scal, 0.1
+		\scal, 0.5
 	),
 
 	p1x: Pbind(
@@ -62,14 +63,16 @@ SynthDef(\syn2, { |freq = 440, amp = 0.01, scal = 1|
 			     0.3, 0.6, 0.3, 0.6]*391.995),
 	\dur, 0.25,
 		// \amp, 0.01
+	\pan, -0.8
 	),
 
 	bass2: Pbind(
 	\instrument, \syn2,
 	\freq, Pseq([0.7, 0.8, 0.9, 1,
-		         1.2, 0.6, 1, 1.2]*587.330),
+			1.2, 0.6, 1, 1.2]*587.330),
 	\dur, 0.25,
 		// \amp, 0.01
+	\pan, 0.8
 	),
 
 	p3: Pbind(
@@ -95,17 +98,17 @@ SynthDef(\syn2, { |freq = 440, amp = 0.01, scal = 1|
 	)
 );
 //Set tempo
-TempoClock.default.tempo = 1;
+TempoClock.default.tempo = 1.2;
 )
 
 (
 // the higher level control pattern is really simple now
-var pl1, pl2, pl3;
+var pl1, pl2, pl3, pp, o, samplePath, wavFile, oscFile;
 pl1 = Psym(Pseq(#[
-	// rest4b,
-	// rest4b,
-	// rest4b,
-	// rest4b,
+	rest4b,
+	rest4b,
+	rest4b,
+	rest4b,
 	//
 	// p1, \rest, \rest,
 	// p1x, \rest, \rest,
@@ -130,10 +133,10 @@ pl2 = Psym(Pseq(#[
 	// rest4b,
 	// rest4b,
 	//
-	// rest4b,
-	// rest4b,
-	// rest4b,
-	// rest4b,
+	rest4b,
+	rest4b,
+	rest4b,
+	rest4b,
 
 	\rest, \rest, p2, \rest,
 	\rest, \rest, p2, p2x,
@@ -151,10 +154,10 @@ pl3 = Psym(Pseq(#[
 	// bass1, bass1,
 	// bass1, bass2,
 	//
-	// bass1, \rest, \rest,
-	// bass1, \rest, \rest,
-	// bass1, bass1,
-	// bass1, bass2,
+	bass2, bass2,
+	bass1, bass1,
+	bass2, bass2,
+	bass1, bass1,
 
 	bass2, bass2,
 	bass1, bass1,
@@ -165,7 +168,8 @@ pl3 = Psym(Pseq(#[
 	bass1, \rest, \rest1,
 	bass1, bass2,
 	bass2, bass2
-
 ], 1), ~phrases);
-Ppar([pl3, pl2, pl1],inf).play;
+
+pp = Ppar([pl3, pl2, pl1],64);
+pp.render(path: "/home/ollie/pewtermoon/laughing-octo-lamp/undercurrent.wav", maxTime: 64.0, headerFormat: "WAV");
 )
