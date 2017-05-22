@@ -2,15 +2,16 @@
 //or play ANY soundfile in ANY application outside SC. To stop this, run
 //killall jackd in a terminal (this will force switching back from jackd to
 //pulseaudio (Ubuntu's sound handling program).
+var phrases, p1, p1x, p2, p2x, bass1, bass2, p3, p3x, rest4b, pl1, pl2, pl3, pp;
+
 //Synth def
-(
 SynthDef(\syn1, { |freq = 440, amp = 1, scal = 0.5|
     var sig, env;
 	sig = SinOsc.ar([freq-15, freq+15], 0, 0.3);
 	env = Env([0,0.9,0.9,0], [0.07, 0.01, 0.25]*scal);
 	env = EnvGen.kr(env, doneAction: 2);
 	sig = Out.ar(0, sig*env);
-}).add.writeDefFile; //writeDefFile needed for .render() method to work
+}).writeDefFile;
 
 SynthDef(\syn2, { |freq = 440, amp = 0.01, scal = 0.25, pan = 0.0|
     var sig, env;
@@ -18,9 +19,8 @@ SynthDef(\syn2, { |freq = 440, amp = 0.01, scal = 0.25, pan = 0.0|
 	env = Env([0,0.9,0.9,0], [0.07, 0.01, 0.5]*scal);
 	env = EnvGen.kr(env, doneAction: 2);
 	sig = Out.ar(0,Pan2.ar( sig*env,pan));
-}).add.writeDefFile;
-)
-(
+}).writeDefFile;
+
 //Pattern lib
 ~phrases = (
 	p1: Pbind(
@@ -99,11 +99,9 @@ SynthDef(\syn2, { |freq = 440, amp = 0.01, scal = 0.25, pan = 0.0|
 );
 //Set tempo
 TempoClock.default.tempo = 1.2;
-)
 
-(
 // the higher level control pattern is really simple now
-var pl1, pl2, pl3, pp, o, samplePath, wavFile, oscFile;
+// var pl1, pl2, pl3, pp, o, samplePath, wavFile, oscFile;
 pl1 = Psym(Pseq(#[
 	rest4b,
 	rest4b,
@@ -171,5 +169,4 @@ pl3 = Psym(Pseq(#[
 ], 1), ~phrases);
 
 pp = Ppar([pl3, pl2, pl1],64);
-pp.render(path: "/home/ollie/pewtermoon/laughing-octo-lamp/undercurrent.wav", maxTime: 64.0, headerFormat: "WAV");
-)
+pp.render(path: "undercurrent.wav", maxTime: 64.0, headerFormat: "WAV");
