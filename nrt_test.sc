@@ -5,7 +5,7 @@ g = [
     [0.1, [\s_new, \NRTsine, 1000, 0, 0, \freq, 440]],
     [1, [\c_set, 0, 0]]
     ];
-o = ServerOptions.new.numOutputBusChannels = 1; // mono output
+o = ServerOptions.new.numOutputBusChannels = 2; // stereo output
 Score.recordNRT(g, "nrt_test.osc", "nrt_test.wav", options: o);
 
 // the 'NRTsine' SynthDef
