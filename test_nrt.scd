@@ -23,8 +23,6 @@ g =
 // Server options
 o = ServerOptions.new.numOutputBusChannels = 2; // stereo output
 
-
-
 // Write to file
 Score.recordNRT(g
 	, "nrt_test.osc"

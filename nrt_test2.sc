@@ -1,6 +1,9 @@
 // Very simple example of using non-real-time synthesis
 // Note: vars must be declared at the top of the script, else error
-var f, o;
+var f, o, odir;
+
+// Set output path
+odir = thisProcess.nowExecutingPath.dirname;
 
 // Synth def, which is written to file. Don't forget Out.ar!
 SynthDef("NRTwn",{arg freq = 1000;
@@ -24,16 +27,21 @@ g = [
     [0.5, [\s_new, \NRTsine, 1001, 0, 0, \freq, 500]],
     [1.0, [\s_new, \NRTsine, 1002, 0, 0, \freq, 600]],
     [1.5, [\s_new, \NRTsine, 1003, 0, 0, \freq, 500]],
-    [2.0, [\s_new, \NRTsine, 1004, 0, 0, \freq, 400]],
+    [2.0, [\s_new, \NRTwn, 1004, 0, 0, \freq, 400]],
     [2.5, [\s_new, \NRTsine, 1005, 0, 0, \freq, 300]],
     [3.0, [\s_new, \NRTsine, 1006, 0, 0, \freq, 200]],
     [3.5, [\s_new, \NRTsine, 1007, 0, 0, \freq, 100]],
     [4.0, [\c_set, 0, 0]] //dummy, ends thing
     ];
-    
+
 // Specify server options (number of channels)
 o = ServerOptions.new.numOutputBusChannels = 1; // mono output
 
 // Write score to file
-Score.recordNRT(g, "nrt_test2.osc", "nrt_test2.wav", options: o);
+Score.recordNRT(
+	g
+	, odir +/+ "nrt_test2.osc"
+	, odir +/+ "nrt_test2.wav"
+	, options: o
+);
 
